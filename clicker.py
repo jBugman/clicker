@@ -54,6 +54,7 @@ COLOR = {
 
 class Watcher:
 	useChicken = True
+	isLooting = False
 
 	def __init__(self, useChicken):
 		self.useChicken = useChicken
@@ -83,7 +84,8 @@ class Watcher:
 			'slot5': self.loadImage('slot5'),
 			'slot6': self.loadImage('slot6'),
 			'slot7': self.loadImage('slot7'),
-			'slot8': self.loadImage('slot8')
+			'slot8': self.loadImage('slot8'),
+			'empty': self.loadImage('empty'),
 		}
 		self.updateInventory()
 		self.printInventory()
@@ -98,6 +100,15 @@ class Watcher:
 		oldCoords = self.mouse.position()
 		offset = self.getOffset()
 		self.mouse.click(offset[0] + point[0], offset[1] + point[1], 1)
+		self.mouse.move(oldCoords[0], oldCoords[1])
+
+	def drag(self, pointA, pointB):
+		oldCoords = self.mouse.position()
+		offset = self.getOffset()
+		self.mouse.press(offset[0] + pointA[0], offset[1] + pointA[1], 1)
+		self.mouse.move(offset[0] + pointB[0], offset[1] + pointB[1])
+		time.sleep(0.05)
+		self.mouse.release(offset[0] + pointB[0], offset[1] + pointB[1], 1)
 		self.mouse.move(oldCoords[0], oldCoords[1])
 
 	def testPixel(self, point, colorCode):
@@ -131,6 +142,16 @@ class Watcher:
 						os.system('xvkbd -text {0}'.format(slot))
 					else:
 						print '[w] No HP potions=('
+
+			if not self.isLooting and self.checkLoot():
+				print '[d] Loot!'
+				slots = self.getLootSlot()
+				if slots:
+					self.isLooting = True
+					pointA = (LOOT[slots[0] - 1][0] + 16, LOOT[slots[0] - 1][1] + 16)
+					pointB = (INVENTORY[slots[1] - 1][0] + 16, INVENTORY[slots[1] - 1][1] + 16)
+					self.drag(pointA, pointB)
+					self.isLooting = False
 
 			time.sleep(CHECK_INTERVAL)
 
@@ -167,6 +188,30 @@ class Watcher:
 		self.inventory = result
 		self.hpPotions = hpPots
 		self.emptySlots = emptySlots
+
+	def checkLoot(self):
+		offset = self.getOffset()
+		slot = self.game.get_image(offset[2] + LOOT[7][0] + 1, offset[3] + LOOT[7][1], 32, 32)
+		return self.compareImages(slot, self.assets['empty'])
+
+	def getLootSlot(self):
+		offset = self.getOffset()
+		i = 1
+		for coords in LOOT:
+			slot = self.game.get_image(offset[2] + coords[0] + 1, offset[3] + coords[1], 32, 32)
+			if self.isItemGood(slot):
+				self.updateInventory()
+				if not len(self.emptySlots):
+					print '[w] Inventory is full!'
+					return None
+				else:
+					inventorySlot = self.emptySlots[-1]
+					print '[d] Looting item from loot slot {0} to inventory slot {1}'.format(i, inventorySlot)
+					return (i, inventorySlot)
+		i += 1
+
+	def isItemGood(self, item):
+		return True
 
 	def printInventory(self):
 		i = 1
