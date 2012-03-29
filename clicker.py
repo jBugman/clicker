@@ -1,17 +1,19 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import gtk
-import wnck
+import gtk, wnck
 import sys
 from pymouse import PyMouse
 import time
+import os, os.path
 
 ## Local constants
 GAME_TITLE = 'Realm of the Mad God'
-CHECK_INTERVAL = 0.05 # секунды
+CHECK_INTERVAL = 0.1 # секунды
+HP_POT = 'hp_pot'
 
-CHICKEN_THRESHOLD = 50 # %
+CHICKEN_THRESHOLD = 30 # %
+POTION_THRESHOLD = 60 # %
 
 ## Coords
 COORDS = {
@@ -19,6 +21,26 @@ COORDS = {
 	'HEALTH_BASE': (612, 271, 176),
 	'NEXUS': (780, 213)
 }
+INVENTORY = [
+	(618, 412),
+	(662, 412),
+	(706, 412),
+	(750, 412),
+	(618, 456),
+	(662, 456),
+	(706, 456),
+	(750, 456)
+]
+LOOT = [
+	(618, 512),
+	(662, 512),
+	(706, 512),
+	(750, 512),
+	(618, 556),
+	(662, 556),
+	(706, 556),
+	(750, 556)
+]
 
 ### Colors
 COLOR = {
@@ -46,7 +68,14 @@ class Watcher:
 
 		self.browserOffset = self.getBrowserTopOffset()
 		self.mouse = PyMouse()
-		self.health = (COORDS['HEALTH_BASE'][0] + int(1.0 * CHICKEN_THRESHOLD / 100 * COORDS['HEALTH_BASE'][2]), COORDS['HEALTH_BASE'][1])
+		self.chickenHealth = (COORDS['HEALTH_BASE'][0] + int(1.0 * CHICKEN_THRESHOLD / 100 * COORDS['HEALTH_BASE'][2]), COORDS['HEALTH_BASE'][1])
+		self.potionHealth = (COORDS['HEALTH_BASE'][0] + int(1.0 * POTION_THRESHOLD / 100 * COORDS['HEALTH_BASE'][2]), COORDS['HEALTH_BASE'][1])
+
+		self.assets = {
+			'hp': self.loadImage('hp')
+		}
+		self.inventory = self.getInventory()
+		self.printInventory()
 
 	def getOffset(self):
 		origin = self.game.get_origin()
@@ -77,11 +106,58 @@ class Watcher:
 
 	def runLoop(self):
 		while True:
-			if self.testPixel(COORDS['NEXUS'], COLOR['NEXUS_MARKER']):
-				if self.testPixel(self.health, COLOR['NOHP']):
+			if self.testPixel(COORDS['NEXUS'], COLOR['NEXUS_MARKER']): # проверяем, что мы в игре (не в нексусе, точнее)
+				if self.testPixel(self.chickenHealth, COLOR['NOHP']):
 					print '[!] Chicken!'
 					self.click(COORDS['NEXUS'])
+
+				elif self.testPixel(self.potionHealth, COLOR['NOHP']):
+					print '[i] HP needed'
+					self.inventory = self.getInventory()
+					hpPots = []
+					for i, item in enumerate(self.inventory):
+						if item == HP_POT:
+							hpPots.append(i + 1)
+					if len(hpPots):
+						slot = hpPots[-1]
+						print '[i] Drinking Hp potion in slot {0}'.format(slot)
+						os.system('xvkbd -text {0}'.format(slot))
+					else:
+						print '[w] No Hp potions=('
+
 			time.sleep(CHECK_INTERVAL)
+
+	def loadImage(self, name):
+		pixbuf = gtk.gdk.pixbuf_new_from_file(os.path.join('assets', name + '.png'))
+		pixmap = gtk.gdk.Pixmap(self.game, 32, 32, -1)
+		pixmap.draw_pixbuf(None, pixbuf, 0, 0, 0, 0, -1, -1)
+		return pixmap.get_image(0, 0, 32, 32)
+
+	def getInventory(self):
+		offset = self.getOffset()
+		i = 1
+		result = []
+		for coords in INVENTORY:
+			slot = self.game.get_image(offset[2] + coords[0] + 1, offset[3] + coords[1], 32, 32)
+			if self.compareImages(slot, self.assets['hp']):
+				result.append(HP_POT)
+			else:
+				result.append('?')
+			i += 1
+		return result
+
+	def printInventory(self):
+		i = 1
+		for item in self.inventory:
+			print 'Slot {0}: {1}'.format(i, item)
+			i += 1
+
+	def compareImages(self, imageA, imageB, size = (32, 32)):
+		for x in range(0, size[0] - 1):
+			for y in range(0, size[1] - 1):
+				if imageA.get_pixel(x, y) != imageB.get_pixel(x, y):
+					return False
+		return True
 
 watcher = Watcher(True)
 print '[i] Watching..'
