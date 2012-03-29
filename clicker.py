@@ -10,7 +10,6 @@ import os, os.path
 ## Local constants
 GAME_TITLE = 'Realm of the Mad God'
 CHECK_INTERVAL = 0.1 # секунды
-HP_POT = 'hp_pot'
 
 CHICKEN_THRESHOLD = 30 # %
 POTION_THRESHOLD = 60 # %
@@ -41,6 +40,10 @@ LOOT = [
 	(706, 556),
 	(750, 556)
 ]
+ITEMS = {
+	'HP_POT': 'hp_pot',
+	'NOTHING': '-'
+}
 
 ### Colors
 COLOR = {
@@ -72,9 +75,17 @@ class Watcher:
 		self.potionHealth = (COORDS['HEALTH_BASE'][0] + int(1.0 * POTION_THRESHOLD / 100 * COORDS['HEALTH_BASE'][2]), COORDS['HEALTH_BASE'][1])
 
 		self.assets = {
-			'hp': self.loadImage('hp')
+			'hp': self.loadImage('hp'),
+			'slot1': self.loadImage('slot1'),
+			'slot2': self.loadImage('slot2'),
+			'slot3': self.loadImage('slot3'),
+			'slot4': self.loadImage('slot4'),
+			'slot5': self.loadImage('slot5'),
+			'slot6': self.loadImage('slot6'),
+			'slot7': self.loadImage('slot7'),
+			'slot8': self.loadImage('slot8')
 		}
-		self.inventory = self.getInventory()
+		self.updateInventory()
 		self.printInventory()
 
 	def getOffset(self):
@@ -113,17 +124,13 @@ class Watcher:
 
 				elif self.testPixel(self.potionHealth, COLOR['NOHP']):
 					print '[i] HP needed'
-					self.inventory = self.getInventory()
-					hpPots = []
-					for i, item in enumerate(self.inventory):
-						if item == HP_POT:
-							hpPots.append(i + 1)
-					if len(hpPots):
-						slot = hpPots[-1]
+					self.updateInventory()
+					if len(self.hpPotions):
+						slot = self.hpPotions[-1]
 						print '[i] Drinking Hp potion in slot {0}'.format(slot)
 						os.system('xvkbd -text {0}'.format(slot))
 					else:
-						print '[w] No Hp potions=('
+						print '[w] No HP potions=('
 
 			time.sleep(CHECK_INTERVAL)
 
@@ -133,18 +140,33 @@ class Watcher:
 		pixmap.draw_pixbuf(None, pixbuf, 0, 0, 0, 0, -1, -1)
 		return pixmap.get_image(0, 0, 32, 32)
 
-	def getInventory(self):
+	def updateInventory(self):
 		offset = self.getOffset()
 		i = 1
 		result = []
+		hpPots = []
+		emptySlots = []
 		for coords in INVENTORY:
 			slot = self.game.get_image(offset[2] + coords[0] + 1, offset[3] + coords[1], 32, 32)
 			if self.compareImages(slot, self.assets['hp']):
-				result.append(HP_POT)
+				result.append(ITEMS['HP_POT'])
+				hpPots.append(i)
+			elif self.compareImages(slot, self.assets['slot1']) or \
+					 self.compareImages(slot, self.assets['slot2']) or \
+					 self.compareImages(slot, self.assets['slot3']) or \
+	 		 		 self.compareImages(slot, self.assets['slot4']) or \
+					 self.compareImages(slot, self.assets['slot5']) or \
+			 		 self.compareImages(slot, self.assets['slot6']) or \
+	 		 		 self.compareImages(slot, self.assets['slot7']) or \
+	 		 		 self.compareImages(slot, self.assets['slot8']):
+				result.append(ITEMS['NOTHING'])
+				emptySlots.append(i)
 			else:
 				result.append('?')
 			i += 1
-		return result
+		self.inventory = result
+		self.hpPotions = hpPots
+		self.emptySlots = emptySlots
 
 	def printInventory(self):
 		i = 1
