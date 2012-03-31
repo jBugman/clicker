@@ -3,8 +3,8 @@
 
 import time
 import os, os.path
-from winapi import Api, ApiException
-from winapi import Image
+
+from lowlevel import LowLevelApi
 from point import Point
 
 CHECK_INTERVAL = 0.1 # секунды
@@ -56,7 +56,7 @@ class Game:
 	criticalHpThreshold = 30
 
 	def __init__(self):
-		self.api = Api()
+		self.api = LowLevelApi()
 		# Event callbacks
 		self.stateChange = self.nope
 		self.lowHp = self.nope
