@@ -6,6 +6,7 @@ import gtk
 
 from errors import WindowException
 from point import Point
+from constants import *
 
 class Image:
 	data = None
@@ -21,9 +22,9 @@ class Image:
 		return True
 
 class PlatformSpecificApi:
-	def initGameWindow(self, title):
+	def initGameWindow(self):
 		try:
-			self.windowId = subprocess.check_output(['xdotool', 'search', '--name', title]).strip()
+			self.windowId = subprocess.check_output(['xdotool', 'search', '--name', GAME_TITLE]).strip()
 		except subprocess.CalledProcessError:
 			raise WindowException('Can not find game window')
 		self.window = gtk.gdk.window_foreign_new(int(self.windowId))
@@ -37,7 +38,7 @@ class PlatformSpecificApi:
 		return Image(pixmap.get_image(0, 0, 32, 32))
 	
 	def getSlot(self, point):
-		point = point.clone().addOffset(self.getLocalOffset())
+		point = point + self.getLocalOffset()
 		img = self.window.get_image(point.x + 1, point.y, 32, 32)
 		return Image(img)
 	
@@ -58,7 +59,7 @@ class PlatformSpecificApi:
 		return Point(origin[0] + localOffset.x, origin[1] + localOffset.y)
 	
 	def click(self, point):
-		point = point.clone().addOffset(self.getOffset())
+		point = point + self.getLocalOffset()
 		subprocess.call(['xdotool', 'windowactivate', '--sync', self.windowId,
 										 'mousemove', '--sync', str(point.x), str(point.y),
 										 'click', '1',
@@ -66,8 +67,8 @@ class PlatformSpecificApi:
 	
 	def drag(self, pointA, pointB):
 		offset = self.getOffset()
-		pointA = pointA.clone().addOffset(offset)
-		pointB = pointB.clone().addOffset(offset)
+		pointA = pointA + offset
+		pointB = pointB + offset
 		subprocess.call(['xdotool', 'windowactivate', '--sync', self.windowId,
 										 'mousemove', '--sync', str(pointA.x), str(pointA.y),
 										 'mousedown', '1',
@@ -76,7 +77,7 @@ class PlatformSpecificApi:
 										 'mousemove', 'restore'])
 	
 	def testPixel(self, point, colorCode):
-		point = point.clone().addOffset(self.getOffset())
+		point = point + self.getLocalOffset()
 		pixel = self.window.get_image(point.x, point.y, 1, 1).get_pixel(0, 0)
 		return pixel == colorCode
 	
