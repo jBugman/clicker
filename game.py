@@ -6,34 +6,9 @@ import os, os.path
 
 from lowlevel import LowLevelApi
 from point import Point
+from constants import *
 
 CHECK_INTERVAL = 0.1 # секунды
-
-HEALTH_BASE = Point(612, 271)
-HEALTH_SIZE = 176
-
-NEXUS = Point(780, 213)
-
-INVENTORY = [
-	Point(618, 412),
-	Point(662, 412),
-	Point(706, 412),
-	Point(750, 412),
-	Point(618, 456),
-	Point(662, 456),
-	Point(706, 456),
-	Point(750, 456)
-]
-LOOT = [
-	Point(618, 512),
-	Point(662, 512),
-	Point(706, 512),
-	Point(750, 512),
-	Point(618, 556),
-	Point(662, 556),
-	Point(706, 556),
-	Point(750, 556)
-]
 
 COLORS = {
 	'NOHP': 5526612, # серый цвет на полоске хп
@@ -47,7 +22,7 @@ HP_OK = 'ok'
 HP_LOW = 'low_hp'
 HP_CRITICAL = 'critical_hp'
 
-class Game:
+class GameApi:
 	state = UNDEFINED
 	hp = HP_OK
 	icons = None

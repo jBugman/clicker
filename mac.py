@@ -10,12 +10,38 @@ from constants import *
 
 class Image:
 	data = None
+	BYTES_PER_PIXEL = 4
+	BITS_PER_COMPONENT = 8
+	COLOR_SPACE = CGColorSpaceCreateDeviceRGB()
 	
 	def __init__(self, src):
-		self.data = src
+		self.imageRef = src
+		self.width = CGImageGetWidth(self.imageRef)
+		self.height = CGImageGetHeight(self.imageRef)
+				
+		bytesPerRow = self.BYTES_PER_PIXEL * self.width
+		size = bytesPerRow * self.height
+		rawData = Foundation.NSMutableData.dataWithLength_(size)
+		context = CGBitmapContextCreate(rawData, self.width, self.height, self.BITS_PER_COMPONENT, bytesPerRow, self.COLOR_SPACE, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big)
+		CGContextDrawImage(context, CGRectMake(0, 0, self.width, self.height), self.imageRef)
+		
+		self.data = rawData
 	
 	def isEqual(self, image):
-		raise NotImplementedException() #TODO
+		if len(self.data) != len(image.data):
+			return False
+		for i, byte in enumerate(image.data):
+			if byte != self.data[i]:
+				return False
+		return True
+	
+	def getPixel(self, point):
+		byteIndex = long(self.BYTES_PER_PIXEL * (self.width * point.y + point.x))
+		r = ord(self.data[byteIndex])
+		g = ord(self.data[byteIndex + 1])
+		b = ord(self.data[byteIndex + 2])
+		#a = ord(self.data[byteIndex + 3])
+		return r * 256 * 256 + g  * 256 + b
 
 
 class PlatformSpecificApi:
@@ -27,7 +53,6 @@ class PlatformSpecificApi:
 				self.window = window
 				break
 		if self.window:
-			print '[d]', window
 			self.windowId = window[kCGWindowNumber]
 		else:
 			raise WindowException('Can not find game window')
@@ -35,8 +60,11 @@ class PlatformSpecificApi:
 	def loadIcon(self, filename):
 		raise NotImplementedException() #TODO
 	
-	def getSlot(self, point):
-		raise NotImplementedException() #TODO
+	def getSlotImage(self, point):
+		point = point + self.getOffset() + Point(1, 2)
+		rect = CGRectMake(point.x, point.y, 32, 32)
+		image = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		return image
 		
 	def getVerticalWindowOffset(self):
 		return 93 #TODO
@@ -59,11 +87,20 @@ class PlatformSpecificApi:
 		raise NotImplementedException() #TODO
 	
 	def testPixel(self, point, colorCode):
-		raise NotImplementedException() #TODO
+		point = point + self.getOffset()
+		rect = CGRectMake(point.x, point.y, 1, 1)
+		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		image = Image(imageRef)
+		return colorCode == image.getPixel(Point(0, 0))
 	
-	def saveScreenshot(self, filename):
+	# Additional test methods
+	
+	def getWindowScreenshot(self):
 		windowImage = CGWindowListCreateImageFromArray(CGRectNull, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		return windowImage
+	
+	def saveImage(self, image, filename):
 		url = NSURL.fileURLWithPath_(filename)
 		imageDestination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
-		CGImageDestinationAddImage(imageDestination, windowImage, None)
+		CGImageDestinationAddImage(imageDestination, image, None)
 		CGImageDestinationFinalize(imageDestination)
