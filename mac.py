@@ -6,6 +6,7 @@ from LaunchServices import * # kUTType constants
 
 from errors import WindowException, NotImplementedException
 from point import Point
+from constants import *
 
 class Image:
 	data = None
@@ -18,14 +19,15 @@ class Image:
 
 
 class PlatformSpecificApi:
-	def initGameWindow(self, title):
+	def initGameWindow(self):
 		windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
 		self.window = None
 		for window in windowList:
-			if kCGWindowName in window and title in window[kCGWindowName]:
+			if kCGWindowName in window and GAME_TITLE in window[kCGWindowName]:
 				self.window = window
 				break
 		if self.window:
+			print '[d]', window
 			self.windowId = window[kCGWindowNumber]
 		else:
 			raise WindowException('Can not find game window')
@@ -37,13 +39,15 @@ class PlatformSpecificApi:
 		raise NotImplementedException() #TODO
 		
 	def getVerticalWindowOffset(self):
-		raise NotImplementedException() #TODO
+		return 93 #TODO
 	
 	def getLocalOffset(self):
-		raise NotImplementedException() #TODO
+		return Point(self.window[kCGWindowBounds]['Width'] / 2 - GAME_SIZE.x / 2, self.verticalWindowOffset)
 		
 	def getOffset(self):
-		raise NotImplementedException() #TODO
+		bounds = self.window[kCGWindowBounds]
+		localOffset = self.getLocalOffset()
+		return Point(bounds['X'] + localOffset.x, bounds['Y'] + localOffset.y)
 		
 	def click(self, point):
 		raise NotImplementedException() #TODO
@@ -58,7 +62,7 @@ class PlatformSpecificApi:
 		raise NotImplementedException() #TODO
 	
 	def saveScreenshot(self, filename):
-		windowImage = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow, self.windowId, kCGWindowImageBoundsIgnoreFraming)
+		windowImage = CGWindowListCreateImageFromArray(CGRectNull, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
 		url = NSURL.fileURLWithPath_(filename)
 		imageDestination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
 		CGImageDestinationAddImage(imageDestination, windowImage, None)
