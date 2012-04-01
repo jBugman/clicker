@@ -72,6 +72,23 @@ class Mouse:
 		loc = NSEvent.mouseLocation()
 		return Point(loc.x, CGDisplayPixelsHigh(0) - loc.y)
 
+class Keyboard:
+	@staticmethod
+	def keydown(keycode):
+		event = CGEventCreateKeyboardEvent(None, CG_KEY_CODES[str(keycode)], True)
+		CGEventPost(kCGHIDEventTap, event)
+
+	@staticmethod
+	def keyup(keycode):
+		event = CGEventCreateKeyboardEvent(None, CG_KEY_CODES[str(keycode)], False)
+		CGEventPost(kCGHIDEventTap, event)
+	
+	@staticmethod
+	def press(keycode):
+		Keyboard.keydown(keycode)
+		time.sleep(0.05)
+		Keyboard.keyup(keycode)
+
 class PlatformSpecificApi:
 	def initGameWindow(self):
 		windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
@@ -104,9 +121,9 @@ class PlatformSpecificApi:
 		else:
 			return None
 	
-	def getSlotImage(self, point):
+	def getImageAtPoint(self, point, size = Point(32, 32)):
 		point = point + self.getOffset() + Point(1, 2)
-		rect = CGRectMake(point.x, point.y, 32, 32)
+		rect = CGRectMake(point.x, point.y, size.x, size.y)
 		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
 		image = Image(imageRef)
 		
@@ -168,7 +185,9 @@ class PlatformSpecificApi:
 		Mouse.move(oldPosition)
 	
 	def sendkey(self, key):
-		raise NotImplementedException() #TODO
+		self.activateWindow()
+		time.sleep(0.05)
+		Keyboard.press(key)
 	
 	def testPixel(self, point, colorCode):
 		point = point + self.getOffset()
@@ -199,5 +218,6 @@ CG_KEY_CODES = {
 	'6': 22,
 	'7': 26,
 	'8': 28,
-	'nexus': 50
+	'nexus': 50,
+	'z': 6
 }
