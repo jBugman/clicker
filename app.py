@@ -18,7 +18,7 @@ if __name__ == '__main__':
 	for slot in range(1, 8):
 		icon = api.getSlotImage(slot).hash()
 		isHp = icon == hp
-		print 'Slot {} HP={}'.format(slot, isHp)
+		print 'Slot {0} HP={1}'.format(slot, isHp)
 		if isHp:
 			api.dragSlotToSlot(slot, 7)
 			break
