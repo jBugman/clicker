@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	# Drag HP pot to slot 7
 	api = LowLevelApi()
 	hp = api.loadIcon('assets/hp.png').hash()
-	for slot in range(1, 8):
+	for slot in range(1, 9):
 		icon = api.getSlotImage(slot).hash()
 		isHp = icon == hp
 		print 'Slot {0} HP={1}'.format(slot, isHp)

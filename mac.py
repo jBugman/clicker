@@ -6,7 +6,7 @@ import time
 import hashlib
 from Quartz import *
 from LaunchServices import * # kUTType constants
-from AppKit import NSEvent, NSRunningApplication
+from AppKit import NSEvent, NSRunningApplication, NSApplicationActivateIgnoringOtherApps
 
 from errors import WindowException, NotImplementedException
 from point import Point
