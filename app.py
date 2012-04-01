@@ -12,21 +12,26 @@ from mac import Image
 ## Tests ##
 if __name__ == '__main__':
 	api = LowLevelApi()
-	api.saveImage(api.getWindowScreenshot(), 'test/test.png')
+	#api.saveImage(api.getWindowScreenshot(), 'test/test.png')
+
+	print 'offset', api.verticalWindowOffset
 
 	hp = api.loadIcon('assets/hp.png').hash()
-	bow = api.loadIcon('assets/bow1.png').hash()
-
-	t0 = time.time()
-	for i, p in enumerate(INVENTORY):
-		slot = api.getSlotImage(p)
-		api.saveImage(slot.imageRef, 'test/slot{}.png'.format(i + 1))
-		#print 'slot{0} hp={1} bow={2}'.format(i + 1, slot.isEqual(hp), slot.isEqual(bow))
-		slot = slot.hash()
-		print 'slot{0} hp={1} bow={2}'.format(i + 1, slot == hp, slot == bow)
-		#slot.isEqual(hp)
-		#slot.isEqual(bow)
-	print '[d] Taken {:.2f}ms'.format((time.time() - t0) * 1000)
+	slot3 = api.getSlotImage(INVENTORY[2]).hash()
+	print 'slot3=hp', hp == slot3
+	
+	# bow = api.loadIcon('assets/bow1.png').hash()
+	# 
+	# t0 = time.time()
+	# for i, p in enumerate(INVENTORY):
+	# 	slot = api.getSlotImage(p)
+	# 	api.saveImage(slot.imageRef, 'test/slot{}.png'.format(i + 1))
+	# 	#print 'slot{0} hp={1} bow={2}'.format(i + 1, slot.isEqual(hp), slot.isEqual(bow))
+	# 	slot = slot.hash()
+	# 	print 'slot{0} hp={1} bow={2}'.format(i + 1, slot == hp, slot == bow)
+	# 	#slot.isEqual(hp)
+	# 	#slot.isEqual(bow)
+	# print '[d] Taken {:.2f}ms'.format((time.time() - t0) * 1000)
 	
 	# api.saveImage(slot.imageRef, 'test/slot.png')
 	# slot2 = api.getSlotImage(INVENTORY[1])

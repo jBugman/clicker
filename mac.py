@@ -58,6 +58,8 @@ class PlatformSpecificApi:
 				self.window = window
 				break
 		if self.window:
+			if 'Firefox' in self.window[kCGWindowOwnerName]:
+				raise WindowException('Firefox not supported. Use Google Chrome')
 			self.windowId = window[kCGWindowNumber]
 		else:
 			raise WindowException('Can not find game window')
@@ -94,7 +96,15 @@ class PlatformSpecificApi:
 		return image
 		
 	def getVerticalWindowOffset(self):
-		return 93 #TODO
+		MAX_OFFSET = 300 # Возможный отступ
+		bounds = self.window[kCGWindowBounds]
+		searchRect = CGRectMake(bounds['X'] + bounds['Width'] / 2 - 1, bounds['Y'] + GAME_SIZE.y, 3, MAX_OFFSET)
+		searchRectImage = CGWindowListCreateImageFromArray(searchRect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		searchRectImage = Image(searchRectImage)
+		for y in range(0, MAX_OFFSET):
+			if searchRectImage.getPixel(Point(0, y)) == 0x000 and searchRectImage.getPixel(Point(1, y)) == 0x000 and searchRectImage.getPixel(Point(2, y)) == 0x000:
+				return y - 2 # Не ясно пока, почему нужна поправка, но пусть будет
+		return 0
 	
 	def getLocalOffset(self):
 		return Point(self.window[kCGWindowBounds]['Width'] / 2 - GAME_SIZE.x / 2, self.verticalWindowOffset)
