@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os, os.path
+import hashlib
 from Quartz import *
 from LaunchServices import * # kUTType constants
 
@@ -28,12 +30,15 @@ class Image:
 		self.data = rawData
 	
 	def isEqual(self, image):
-		if len(self.data) != len(image.data):
-			return False
-		for i, byte in enumerate(image.data):
-			if byte != self.data[i]:
-				return False
-		return True
+		return self.hash() == image.hash()
+		
+	def hash(self):
+		hashSrc = ''
+		for y in range(self.height):
+			for x in range(self.width):
+				p = Point(x, y)
+				hashSrc += str(self.getPixel(p))
+		return hashlib.md5(hashSrc).hexdigest()
 	
 	def getPixel(self, point):
 		byteIndex = long(self.BYTES_PER_PIXEL * (self.width * point.y + point.x))
@@ -56,14 +61,36 @@ class PlatformSpecificApi:
 			self.windowId = window[kCGWindowNumber]
 		else:
 			raise WindowException('Can not find game window')
+			
+		self.hashes = {}
+		for filename in os.listdir('grabbed-images'):
+			if filename.endswith('.png'):
+				asset = self.loadIcon(os.path.join('grabbed-images', filename))
+				if asset:
+					h = asset.hash()
+					self.hashes[h] = asset
+		print '[d] Hashes: ', len(self.hashes)
 	
 	def loadIcon(self, filename):
-		raise NotImplementedException() #TODO
+		imgDataProvider = CGDataProviderCreateWithCFData(NSData.dataWithContentsOfFile_(filename))
+		imageRef = CGImageCreateWithPNGDataProvider(imgDataProvider, None, True, kCGRenderingIntentDefault)
+		if imageRef:
+			return Image(imageRef)
+		else:
+			return None
 	
 	def getSlotImage(self, point):
 		point = point + self.getOffset() + Point(1, 2)
 		rect = CGRectMake(point.x, point.y, 32, 32)
-		image = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		image = Image(imageRef)
+		
+		h = image.hash()
+		if not h in self.hashes:
+			print '[i] Grabbed new asset'
+			self.hashes[h] = image
+			self.saveImage(image.imageRef, os.path.join('grabbed-images', str(h) + '.png'))
+			
 		return image
 		
 	def getVerticalWindowOffset(self):
