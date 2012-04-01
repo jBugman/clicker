@@ -2,9 +2,11 @@
 # -*- coding: UTF-8 -*-
 
 import os, os.path
+import time
 import hashlib
 from Quartz import *
 from LaunchServices import * # kUTType constants
+from AppKit import NSEvent, NSRunningApplication
 
 from errors import WindowException, NotImplementedException
 from point import Point
@@ -48,6 +50,27 @@ class Image:
 		#a = ord(self.data[byteIndex + 3])
 		return r * 256 * 256 + g  * 256 + b
 
+
+class Mouse:
+	@staticmethod
+	def press(point):
+		event = CGEventCreateMouseEvent(None, kCGEventLeftMouseDown, point.asTuple(), 0)
+		CGEventPost(kCGHIDEventTap, event)
+	
+	@staticmethod
+	def release(point):
+		event = CGEventCreateMouseEvent(None, kCGEventLeftMouseUp, point.asTuple(), 0)
+		CGEventPost(kCGHIDEventTap, event)
+	
+	@staticmethod
+	def move(point):
+		move = CGEventCreateMouseEvent(None, kCGEventMouseMoved, point.asTuple(), 0)
+		CGEventPost(kCGHIDEventTap, move)
+	
+	@staticmethod
+	def position():
+		loc = NSEvent.mouseLocation()
+		return Point(loc.x, CGDisplayPixelsHigh(0) - loc.y)
 
 class PlatformSpecificApi:
 	def initGameWindow(self):
@@ -113,12 +136,36 @@ class PlatformSpecificApi:
 		bounds = self.window[kCGWindowBounds]
 		localOffset = self.getLocalOffset()
 		return Point(bounds['X'] + localOffset.x, bounds['Y'] + localOffset.y)
-		
+	
+	def activateWindow(self):
+		app = NSRunningApplication.runningApplicationWithProcessIdentifier_(self.window[kCGWindowOwnerPID])
+		app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+	
 	def click(self, point):
-		raise NotImplementedException() #TODO
-		
+		oldPosition = Mouse.position()
+		point = point + self.getOffset()
+		time.sleep(0.05)
+		self.activateWindow()
+		time.sleep(0.05)
+		Mouse.press(point)
+		Mouse.release(point)
+		time.sleep(0.001)
+		Mouse.move(oldPosition)
+	
 	def drag(self, pointA, pointB):
-		raise NotImplementedException() #TODO
+		pointA = pointA + self.getOffset()
+		pointB = pointB + self.getOffset()
+		oldPosition = Mouse.position()
+		time.sleep(0.05)
+		self.activateWindow()
+		time.sleep(0.05)
+		Mouse.press(pointA)
+		time.sleep(0.05)
+		Mouse.move(pointB)
+		time.sleep(0.2)
+		Mouse.release(pointB)
+		time.sleep(0.05)
+		Mouse.move(oldPosition)
 	
 	def sendkey(self, key):
 		raise NotImplementedException() #TODO
@@ -141,3 +188,16 @@ class PlatformSpecificApi:
 		imageDestination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
 		CGImageDestinationAddImage(imageDestination, image, None)
 		CGImageDestinationFinalize(imageDestination)
+
+CG_KEY_CODES = {
+	'shift': 56,
+	'1': 18,
+	'2': 19,
+	'3': 20,
+	'4': 21,
+	'5': 23,
+	'6': 22,
+	'7': 26,
+	'8': 28,
+	'nexus': 50
+}

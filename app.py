@@ -14,11 +14,11 @@ if __name__ == '__main__':
 	api = LowLevelApi()
 	#api.saveImage(api.getWindowScreenshot(), 'test/test.png')
 
-	print 'offset', api.verticalWindowOffset
+	#print 'offset', api.verticalWindowOffset
 
-	hp = api.loadIcon('assets/hp.png').hash()
-	slot3 = api.getSlotImage(INVENTORY[2]).hash()
-	print 'slot3=hp', hp == slot3
+	#hp = api.loadIcon('assets/hp.png').hash()
+	#slot3 = api.getSlotImage(INVENTORY[2]).hash()
+	#print 'slot3=hp', hp == slot3
 	
 	# bow = api.loadIcon('assets/bow1.png').hash()
 	# 
@@ -60,13 +60,14 @@ if __name__ == '__main__':
 	
 	# print api.getOffset()
 	
-	# play = Point(410, 555)
-	# print play, play + Point(10, 100), play
+	#api.sendkey(1)
 	
-	
+	time.sleep(0.05)
+	play = Point(410, 555)
 	# api.click(play)
+	# print '!'
 	# slotOffset = Point(16, 16)
-	# slot1 = Point(618, 412) + slotOffset
-	# slot6 = Point(662, 456) + slotOffset
-	# api.drag(slot1, slot6)
+	api.drag(INVENTORY[0] + Point(16, 16), INVENTORY[3] + Point(16, 16))
+	#time.sleep(0.1)
+	#api.drag(INVENTORY[5] + Point(16, 16), INVENTORY[4] + Point(16, 16))
 	# game = GameApi()

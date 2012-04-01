@@ -16,3 +16,6 @@ class Point:
 	
 	def __add__(self, other):
 		return Point(self.x + other.x, self.y + other.y)
+	
+	def asTuple(self):
+		return (self.x, self.y)
