@@ -181,7 +181,7 @@ class PlatformSpecificApi:
 		Mouse.move(pointB)
 		time.sleep(0.2)
 		Mouse.release(pointB)
-		time.sleep(0.05)
+		time.sleep(0.2)
 		Mouse.move(oldPosition)
 	
 	def sendkey(self, key):

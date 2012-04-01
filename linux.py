@@ -37,9 +37,9 @@ class PlatformSpecificApi:
 		pixmap.draw_pixbuf(None, pixbuf, 0, 0, 0, 0, -1, -1)
 		return Image(pixmap.get_image(0, 0, 32, 32))
 	
-	def getSlotImage(self, point):
+	def getImageAtPoint(self, point, size = Point(32, 32)):
 		point = point + self.getLocalOffset()
-		img = self.window.get_image(point.x + 1, point.y, 32, 32)
+		img = self.window.get_image(point.x + 1, point.y, size.x, size.y)
 		return Image(img)
 	
 	def getVerticalWindowOffset(self):

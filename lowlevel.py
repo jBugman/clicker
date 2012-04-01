@@ -3,6 +3,7 @@
 
 import sys
 from point import Point
+from constants import INVENTORY, LOOT
 
 print '[d] Platform:', sys.platform
 if sys.platform == 'darwin':
@@ -17,3 +18,17 @@ class LowLevelApi(PlatformSpecificApi):
 			self.verticalWindowOffset = self.getVerticalWindowOffset()
 		except Exception as error: 
 			print '[e]', error
+	
+	def getSlotImage(self, slotNumber):
+		point = INVENTORY[slotNumber - 1]
+		return self.getImageAtPoint(point)
+	
+	def dragSlotToSlot(self, slotNumberA, slotNumberB):
+		pointA = INVENTORY[slotNumberA - 1] + Point(16, 16)
+		pointB = INVENTORY[slotNumberB - 1] + Point(16, 16)
+		self.drag(pointA, pointB)
+	
+	def dragLootToSlot(self, slotNumberA, slotNumberB):
+		pointA = LOOT[slotNumberA - 1] + Point(16, 16)
+		pointB = INVENTORY[slotNumberB - 1] + Point(16, 16)
+		self.drag(pointA, pointB)
