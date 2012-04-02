@@ -10,13 +10,9 @@
 
 ## Linux
 
-### xdotool
-1. http://semicomplete.googlecode.com/files/xdotool-2.20110530.1.tar.gz
-2. [sudo] make all install
-
-### pygtk
-1. http://citylan.dl.sourceforge.net/project/macpkg/PyGTK/2.24.0/PyGTK.pkg
+1. xdotool
+2. pygtk
 
 ## Mac OS X
 
-None (using pure Quartz)
+None. Works using pure Quartz.
