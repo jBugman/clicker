@@ -21,13 +21,17 @@ class LowLevelApi(PlatformSpecificApi):
 	
 	def getSlotImage(self, slotNumber):
 		point = INVENTORY[slotNumber - 1]
-		return self.getImageAtPoint(point)
-	
+		return self.getImageAtPoint(point, True)
+
+	def getLootImage(self, slotNumber, checkHashes = False):
+		point = LOOT[slotNumber - 1]
+		return self.getImageAtPoint(point, checkHashes)
+
 	def dragSlotToSlot(self, slotNumberA, slotNumberB):
 		pointA = INVENTORY[slotNumberA - 1] + Point(16, 16)
 		pointB = INVENTORY[slotNumberB - 1] + Point(16, 16)
 		self.drag(pointA, pointB)
-	
+
 	def dragLootToSlot(self, slotNumberA, slotNumberB):
 		pointA = LOOT[slotNumberA - 1] + Point(16, 16)
 		pointB = INVENTORY[slotNumberB - 1] + Point(16, 16)

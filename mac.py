@@ -121,18 +121,17 @@ class PlatformSpecificApi:
 		else:
 			return None
 	
-	def getImageAtPoint(self, point, size = Point(32, 32)):
+	def getImageAtPoint(self, point, checkHashes = False, size = Point(32, 32)):
 		point = point + self.getOffset() + Point(1, 2)
 		rect = CGRectMake(point.x, point.y, size.x, size.y)
 		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
 		image = Image(imageRef)
-		
-		h = image.hash()
-		if not h in self.hashes:
-			print '[i] Grabbed new asset'
-			self.hashes[h] = image
-			self.saveImage(image.imageRef, os.path.join('grabbed-images', str(h) + '.png'))
-			
+		if checkHashes:
+			h = image.hash()
+			if not h in self.hashes:
+				print '[i] Grabbed new asset'
+				self.hashes[h] = image
+				self.saveImage(image.imageRef, os.path.join('grabbed-images', str(h) + '.png'))
 		return image
 		
 	def getVerticalWindowOffset(self):

@@ -40,39 +40,49 @@ class GameApi:
 		self.stateChange = self.nope
 		# Loading assets
 		self.icons = {}
-		for fileName in os.listdir('assets'):
-			self.icons[os.path.splitext(fileName)[0]] = self.api.loadIcon(os.path.join('assets', fileName))
+		for filename in os.listdir('assets'):
+			if filename.endswith('.png'):
+				self.icons[os.path.splitext(filename)[0]] = self.api.loadIcon(os.path.join('assets', filename))
+		print '[d] Assets:', len(self.icons)
 
 	def nope(self):
 		print '[w] Not implemented'
 
 	def checkState(self):
-		if self.api.testPixel(NEXUS, COLOR['NEXUS_MARKER']):
+		if self.api.testPixel(NEXUS, COLORS['NEXUS_MARKER']):
 			if self.state != CAN_TELEPORT:
 				self.state = CAN_TELEPORT
 				self.stateChange(CAN_TELEPORT)
-			else:
-				self.state = UNDEFINED
-				self.stateChange(UNDEFINED)
+		elif self.state != UNDEFINED:
+			self.state = UNDEFINED
+			self.stateChange(UNDEFINED)
 
 	def checkHP(self):
 		criticalHealth = Point(HEALTH_BASE.x + int(1.0 * self.criticalHpThreshold / 100 * HEALTH_SIZE), HEALTH_BASE.y)
 		lowHealth = Point(HEALTH_BASE.x + int(1.0 * self.lowHpThreshold / 100 * HEALTH_SIZE), HEALTH_BASE.y)
-		if self.testPixel(criticalHealth, COLORS['NOHP']):
-			if self.hp != HP_OK or self.hp != HP_LOW:
-				self.hp = HP_CRITICAL
-				self.criticalHp()
-#			elif self.hp != HP_OK or self.hp != HP_CRITICAL:
-#				self.hp = HP_LOW
-#				self.lowHp()
-#			else:
-#				self.hp = HP_OK
+		if self.api.testPixel(criticalHealth, COLORS['NOHP']):
+			self.criticalHp()
+		elif self.api.testPixel(lowHealth, COLORS['NOHP']):
+			self.lowHp()
+
+	def checkLoot(self):
+		loot8 = self.api.getLootImage(8)
+		return loot8.isEqual(self.icons['empty'])
+	
+	def checkLootItemInSlot(self, slot, acceptedItems):
+		lootSlot = self.api.getLootImage(slot, True)
+		for item in acceptedItems:
+			if lootSlot.isEqual(self.icons[item]):
+				return True
+		return False
 
 	def run(self):
 		while True:
 			self.checkState()
 			if self.state == CAN_TELEPORT:
 				self.checkHP()
+			if self.checkLoot():
+				self.hasLoot()
 			time.sleep(CHECK_INTERVAL)
 
 #EOF
