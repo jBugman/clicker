@@ -17,6 +17,9 @@ class Clicker:
 		#self.game.criticalHp = 
 		self.game.stateChange = self.stateChange
 		self.game.hasLoot = self.hasLoot
+		
+		self.acceptedLoot = self.lootBetterThanTier(1)
+		print '[d] Accepted loot:', self.acceptedLoot
 
 	def start(self):
 		try:
@@ -36,8 +39,17 @@ class Clicker:
 			print '[i] Loot!'
 			self.locked = True
 			for i in range(1, 8):
-				print '[d] Loot {0} is HP: {1}'.format(i, self.game.checkLootItemInSlot(i, ['hp']))
+				item = self.game.checkLootItemInSlot(i, self.acceptedLoot)
+				if item:
+					print '[d] Loot:', item
 			self.locked = False
+
+	def lootBetterThanTier(self, tier):
+		result = []
+		for key in self.game.icons.keys():
+			if not key.startswith('slot') and key[-1].isdigit() and int(key[-1]) >= tier:
+				result.append(key)
+		return result
 
 class Tests:
 	def dragDrop(self):
