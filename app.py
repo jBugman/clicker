@@ -26,7 +26,7 @@ class Clicker:
 			sys.exit(0)
 
 	def lowHp(self):
-		print '[i] Low HP'
+		print '[i] Low HP' # FIXME: not working?
 
 	def stateChange(self, state):
 		print '[i] State:', state
@@ -43,16 +43,20 @@ class Tests:
 	def dragDrop(self):
 		# Drag HP pot to slot 7
 		api = LowLevelApi()
+		api.enterFrame()
 		hp = api.loadIcon('assets/hp.png')
 		for slot in range(1, 9):
 			icon = api.getSlotImage(slot)
+			api.saveImage(icon.imageRef, 'test/slot{0}.png'.format(slot))
 			isHp = icon.isEqual(hp)
 			print 'Slot {0} HP={1}'.format(slot, isHp)
 			if isHp:
 				api.dragSlotToSlot(slot, 7)
 				break
+		api.exitFrame()
 
 	def loot(self):
+		# Check HP pots in loot
 		Clicker().start()
 
 if __name__ == '__main__':

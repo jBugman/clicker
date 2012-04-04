@@ -90,6 +90,8 @@ class Keyboard:
 		Keyboard.keyup(keycode)
 
 class PlatformSpecificApi:
+	snapshot = None
+	
 	def initGameWindow(self):
 		windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID)
 		self.window = None
@@ -121,10 +123,20 @@ class PlatformSpecificApi:
 		else:
 			return None
 	
-	def getImageAtPoint(self, point, checkHashes = False, size = Point(32, 32)):
-		point = point + self.getOffset() + Point(1, 2)
-		rect = CGRectMake(point.x, point.y, size.x, size.y)
-		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+	def cropCGImage(self, image, cropRect):
+		bitsPerComponent = CGImageGetBitsPerComponent(image)
+		bytesPerRow = CGImageGetBytesPerRow(image) / CGImageGetWidth(image) * cropRect.size.width
+		context = CGBitmapContextCreate(None, cropRect.size.width, cropRect.size.height, bitsPerComponent, bytesPerRow, CGColorSpaceCreateDeviceRGB(), CGImageGetBitmapInfo(image))
+		CGContextDrawImage(context, ((-cropRect.origin.x, -cropRect.origin.y), cropRect.size), image)
+		return CGBitmapContextCreateImage(context)
+	
+	def getImageAtPoint(self, point, checkHashes = False, size = Point(32, 32)):#, useSnapshot = True):
+		# point = point + self.getOffset() + Point(1, 2)
+		point = point + self.getLocalOffset() + Point(1, 2)
+		rect = CGRectMake(point.x, point.y, size.x - 1, size.y)
+		# imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		imageRef = CGImageCreateWithImageInRect(self.snapshot, rect)
+		# imageRef = self.cropCGImage(self.snapshot, rect)
 		image = Image(imageRef)
 		if checkHashes:
 			h = image.hash()
@@ -178,9 +190,9 @@ class PlatformSpecificApi:
 		Mouse.press(pointA)
 		time.sleep(0.05)
 		Mouse.move(pointB)
-		time.sleep(0.2)
+		time.sleep(0.25)
 		Mouse.release(pointB)
-		time.sleep(0.2)
+		time.sleep(0.3)
 		Mouse.move(oldPosition)
 	
 	def sendkey(self, key):
@@ -189,11 +201,14 @@ class PlatformSpecificApi:
 		Keyboard.press(key)
 	
 	def testPixel(self, point, colorCode):
-		point = point + self.getOffset()
-		rect = CGRectMake(point.x, point.y, 1, 1)
-		imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
-		image = Image(imageRef)
-		return colorCode == image.getPixel(Point(0, 0))
+		# point = point + self.getOffset()
+		# rect = CGRectMake(point.x, point.y, 1, 1)
+		# imageRef = CGWindowListCreateImageFromArray(rect, [self.windowId], kCGWindowImageBoundsIgnoreFraming)
+		# image = Image(imageRef)
+		point = point + self.getLocalOffset()
+		image = Image(self.snapshot)
+		return colorCode == image.getPixel(point)
+		# return colorCode == image.getPixel(Point(0, 0))
 	
 	# Additional test methods
 	

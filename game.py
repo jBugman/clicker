@@ -8,7 +8,7 @@ from lowlevel import LowLevelApi
 from point import Point
 from constants import *
 
-CHECK_INTERVAL = 0.1 # секунды
+CHECK_INTERVAL = 0.25 # секунды
 
 COLORS = {
 	'NOHP': 5526612, # серый цвет на полоске хп
@@ -70,19 +70,21 @@ class GameApi:
 		return loot8.isEqual(self.icons['empty'])
 	
 	def checkLootItemInSlot(self, slot, acceptedItems):
-		lootSlot = self.api.getLootImage(slot, True)
+		lootSlot = self.api.getLootImage(slot, checkHashes = True)
 		for item in acceptedItems:
 			if lootSlot.isEqual(self.icons[item]):
-				return True
-		return False
+				return item
+		return None
 
 	def run(self):
 		while True:
+			self.api.enterFrame()
 			self.checkState()
 			if self.state == CAN_TELEPORT:
 				self.checkHP()
 			if self.checkLoot():
 				self.hasLoot()
+			self.api.exitFrame()
 			time.sleep(CHECK_INTERVAL)
 
 #EOF

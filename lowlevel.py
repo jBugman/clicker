@@ -18,10 +18,17 @@ class LowLevelApi(PlatformSpecificApi):
 			self.verticalWindowOffset = self.getVerticalWindowOffset()
 		except Exception as error: 
 			print '[e]', error
+
+	def enterFrame(self):
+		if sys.platform == 'darwin':
+			self.snapshot = self.getWindowScreenshot()
+	
+	def exitFrame(self):
+		self.snapshot = None
 	
 	def getSlotImage(self, slotNumber):
 		point = INVENTORY[slotNumber - 1]
-		return self.getImageAtPoint(point, True)
+		return self.getImageAtPoint(point, checkHashes = True)
 
 	def getLootImage(self, slotNumber, checkHashes = False):
 		point = LOOT[slotNumber - 1]
