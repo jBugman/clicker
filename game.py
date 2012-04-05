@@ -18,13 +18,9 @@ COLORS = {
 # States
 UNDEFINED = 'undefined'
 CAN_TELEPORT = 'can_teleport'
-HP_OK = 'ok'
-HP_LOW = 'low_hp'
-HP_CRITICAL = 'critical_hp'
 
 class GameApi:
 	state = UNDEFINED
-	hp = HP_OK
 	icons = None
 
 	lowHpThreshold = 50
@@ -68,7 +64,7 @@ class GameApi:
 	def checkLoot(self):
 		loot8 = self.api.getLootImage(8)
 		return loot8.isEqual(self.icons['empty'])
-	
+
 	def checkLootItemInSlot(self, slot, acceptedItems):
 		lootSlot = self.api.getLootImage(slot, checkHashes = True)
 		for item in acceptedItems:

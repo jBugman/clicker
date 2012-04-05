@@ -9,15 +9,15 @@ from point import Point
 from constants import *
 
 class Image:
-	data = None
+	imageRef = None
 
 	def __init__(self, src):
-		self.data = src
+		self.imageRef = src
 
 	def isEqual(self, image, size = (32, 32)):
 		for x in range(0, size[0] - 1):
 			for y in range(0, size[1] - 1):
-				if self.data.get_pixel(x, y) != image.data.get_pixel(x, y):
+				if self.imageRef.get_pixel(x, y) != image.imageRef.get_pixel(x, y):
 					return False
 		return True
 
@@ -39,7 +39,7 @@ class PlatformSpecificApi:
 
 	def getImageAtPoint(self, point, checkHashes = False, size = Point(32, 32)):
 		point = point + self.getLocalOffset()
-		img = self.window.get_image(point.x + 1, point.y, size.x, size.y)
+		img = self.window.get_image(point.x, point.y, size.x, size.y)
 		return Image(img)
 
 	def getVerticalWindowOffset(self):

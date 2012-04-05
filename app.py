@@ -11,14 +11,15 @@ from constants import *
 class Clicker:
 	def __init__(self):
 		self.locked = False
-		
+
 		self.game = GameApi()
 		self.game.lowHp = self.lowHp
-		#self.game.criticalHp = 
+		#self.game.criticalHp =
 		self.game.stateChange = self.stateChange
 		self.game.hasLoot = self.hasLoot
-		
+
 		self.acceptedLoot = self.lootBetterThanTier(1)
+		self.acceptedLoot.append('hp')
 		print '[d] Accepted loot:', self.acceptedLoot
 
 	def start(self):
@@ -42,6 +43,7 @@ class Clicker:
 				item = self.game.checkLootItemInSlot(i, self.acceptedLoot)
 				if item:
 					print '[d] Loot:', item
+					self.game.api.dragLootToSlot(i, 8)
 			self.locked = False
 
 	def lootBetterThanTier(self, tier):
@@ -59,7 +61,7 @@ class Tests:
 		hp = api.loadIcon('assets/hp.png')
 		for slot in range(1, 9):
 			icon = api.getSlotImage(slot)
-			api.saveImage(icon.imageRef, 'test/slot{0}.png'.format(slot))
+			#api.saveImage(icon.imageRef, 'test/slot{0}.png'.format(slot))
 			isHp = icon.isEqual(hp)
 			print 'Slot {0} HP={1}'.format(slot, isHp)
 			if isHp:
@@ -73,5 +75,5 @@ class Tests:
 
 if __name__ == '__main__':
 	tests = Tests()
-	# tests.dragDrop()
+	#tests.dragDrop()
 	tests.loot()
