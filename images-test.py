@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+#import wx
+
 import time
 from Quartz import *
 
@@ -45,9 +47,12 @@ def cropCGImage(image, cropRect):
 # print '[i] Total: {0}ms'.format(ta)
 
 t.start()
-ta = 0
 windowImage = CGWindowListCreateImageFromArray(CGRectNull, [window[kCGWindowNumber]], kCGWindowImageBoundsIgnoreFraming)
+print '[i] Quartz screenshot:', t.format()
+
+ta = 0
 for i in range (10):
+	t.start()
 	rect = CGRectMake(10 * i, 20, 32, 32)
 	frame = cropCGImage(windowImage, rect)
 	t0 = t.get()
@@ -81,9 +86,9 @@ im = Image.open(filename)
 im.load()
 print '[i] screencapture+pil screenshot:', t.format()
 
-t.start()
 ta = 0
 for i in range (10):
+	t.start()
 	rect = (10 * i, 20, 10 * i + 32, 52)
 	frame = im.crop(rect)
 	frame.load()
